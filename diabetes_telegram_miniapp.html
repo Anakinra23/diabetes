@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>СД2 — Терапия</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F3EE;
+  --surface: #FFFFFF;
+  --surface2: #EFEDE8;
+  --border: #D8D4CC;
+  --border2: #C5C0B6;
+  --text: #1A1916;
+  --text2: #5C5850;
+  --text3: #9B968D;
+  --accent: #1A6B4A;
+  --accent-bg: #E8F4EE;
+  --warn: #8B5E00;
+  --warn-bg: #FDF4E3;
+  --danger: #8B2020;
+  --danger-bg: #FDEAEA;
+  --blue: #1A4A8B;
+  --blue-bg: #E8F0FD;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --tg-safe-top: env(safe-area-inset-top, 0px);
+  --tg-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-h: 56px;
+  --header-h: 48px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--text);
+  color: #F5F3EE;
+  padding: 10px 16px;
+  padding-top: calc(10px + var(--tg-safe-top));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-height: var(--header-h);
+}
+.header-title { font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; }
+.header-sub { font-size: 10px; color: #9B968D; font-family: var(--mono); }
+
+/* ── Top Tab Bar ── */
+.top-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 9px;
+  gap: 3px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+  letter-spacing: .02em;
+}
+.nav-btn .nav-icon { font-size: 16px; line-height: 1; }
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Scroll area ── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ── Pages ── */
+.tab-page { display: none; padding: 14px 14px 8px; }
+.tab-page.active { display: block; }
+
+/* ── Section ── */
+.sec { margin-bottom: 20px; }
+.sec-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Form elements ── */
+.field { margin-bottom: 12px; }
+.field-label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+input[type=number], select {
+  width: 100%; padding: 10px 12px; font-size: 15px; font-family: var(--sans);
+  border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  color: var(--text); outline: none; transition: border-color .15s;
+  -webkit-appearance: none;
+}
+input[type=number]:focus, select:focus { border-color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 6px 0 2px; height: 4px; }
+
+.range-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+.range-big { font-family: var(--mono); font-size: 32px; font-weight: 500; color: var(--text); line-height: 1; }
+.range-unit { font-size: 15px; color: var(--text2); }
+.range-hints { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── eGFR bar ── */
+.egfr-wrap { position: relative; margin: 6px 0 3px; }
+.egfr-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; }
+.egfr-seg { flex: 1; }
+.egfr-ptr {
+  position: absolute; top: -4px; width: 3px; height: 18px;
+  background: var(--text); border-radius: 1px; transition: left .2s; margin-left: -1px;
+}
+
+/* ── Checkboxes ── */
+.check-group { display: flex; flex-direction: column; gap: 6px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); transition: all .12s; font-size: 14px; user-select: none;
+}
+.check-item.active { border-color: var(--accent); background: var(--accent-bg); }
+.check-item input[type=checkbox] { margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; width: 16px; height: 16px; }
+.check-label { line-height: 1.4; }
+.check-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+
+/* ── Drug list ── */
+.drug-grid { display: flex; flex-direction: column; gap: 6px; }
+.drug-check-item {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); transition: all .12s; user-select: none;
+}
+.drug-check-item.active { border-color: var(--accent); background: var(--accent-bg); }
+.drug-check-item.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+.drug-check-item input[type=checkbox] { accent-color: var(--accent); flex-shrink: 0; width: 16px; height: 16px; }
+.d-info { flex: 1; min-width: 0; }
+.d-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.d-class { font-size: 11px; color: var(--text2); }
+.d-tag {
+  font-family: var(--mono); font-size: 10px; padding: 3px 7px; border-radius: 4px; white-space: nowrap;
+  background: var(--accent-bg); color: var(--accent); flex-shrink: 0;
+}
+.drug-check-item.contra .d-tag { background: var(--danger-bg); color: var(--danger); }
+.drug-check-item.dose-reduce .d-tag { background: var(--warn-bg); color: var(--warn); }
+.drug-check-item.nr-warn .d-tag { background: var(--danger-bg); color: var(--danger); }
+
+/* ── Go button ── */
+.go-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 14px 18px; border-radius: 10px; border: none;
+  background: var(--accent); color: #fff; font-size: 15px; font-family: var(--sans);
+  font-weight: 500; cursor: pointer; transition: opacity .15s; margin-top: 4px;
+}
+.go-btn:active { opacity: .8; }
+
+/* ── Result metrics ── */
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.metric-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.metric-label { font-size: 10px; color: var(--text3); margin-bottom: 3px; font-family: var(--mono); letter-spacing: .03em; }
+.metric-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text); }
+.metric-val.good { color: var(--accent); }
+.metric-val.warn { color: var(--warn); }
+.metric-val.danger { color: var(--danger); }
+.metric-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
+
+/* ── Panel ── */
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 14px; margin-bottom: 12px;
+}
+.panel-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text2); margin-bottom: 12px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+
+/* ── Progress ── */
+.progress-track {
+  height: 8px; background: var(--surface2); border-radius: 99px;
+  overflow: hidden; border: 1px solid var(--border); margin: 6px 0 4px;
+}
+.progress-fill { height: 100%; border-radius: 99px; transition: width .4s ease, background .3s; background: var(--accent); }
+.progress-fill.warn { background: #C48000; }
+.progress-fill.danger { background: #C04040; }
+.prog-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+/* ── Badges ── */
+.badge { display: inline-block; font-size: 10px; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.badge-ok { background: var(--accent-bg); color: var(--accent); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-neutral { background: var(--surface2); color: var(--text2); }
+
+/* ── Alert box ── */
+.alert-box { padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.6; margin-bottom: 8px; }
+.alert-warn { background: var(--warn-bg); border: 1px solid #E8C060; color: var(--warn); }
+.alert-danger { background: var(--danger-bg); border: 1px solid #E8A0A0; color: var(--danger); }
+.alert-info { background: var(--blue-bg); border: 1px solid #90AFDF; color: var(--blue); }
+.alert-ok { background: var(--accent-bg); border: 1px solid #80C8A0; color: var(--accent); }
+
+/* ── Rec items ── */
+.rec-block { margin-bottom: 14px; }
+.rec-block-title { font-size: 10px; font-weight: 500; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .08em; font-family: var(--mono); }
+.rec-list { display: flex; flex-direction: column; gap: 6px; }
+.rec-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); font-size: 13px; flex-wrap: wrap; }
+.rec-item.priority { border-color: #80C8A0; background: var(--accent-bg); }
+.rec-item.alt { border-color: var(--border2); }
+.rec-drug { font-weight: 500; color: var(--text); width: 100%; }
+.rec-item.priority .rec-drug { color: var(--accent); }
+.rec-reason { color: var(--text2); font-size: 11px; flex: 1; line-height: 1.5; }
+.rec-badge { font-size: 10px; font-family: var(--mono); padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
+.rec-badge.prio { background: var(--accent); color: #fff; }
+.rec-badge.alt { background: var(--surface2); color: var(--text2); }
+.rec-badge.comor { background: var(--blue-bg); color: var(--blue); }
+
+/* ── Restrictions ── */
+.restrictions-grid { display: flex; flex-direction: column; gap: 6px; }
+.restriction-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); }
+.restriction-row.r-danger { border-color: #E8A0A0; background: var(--danger-bg); }
+.restriction-row.r-warn { border-color: #E8C060; background: var(--warn-bg); }
+.restriction-row.r-ok { border-color: #80C8A0; background: var(--accent-bg); }
+
+.note-text { font-size: 11px; color: var(--text3); line-height: 1.6; margin-top: 10px; font-style: italic; }
+
+/* ── Reference ── */
+.ref-nav { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.ref-nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
+  cursor: pointer; font-size: 13px; color: var(--text2); transition: all .12s;
+}
+.ref-nav-item.active { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.ref-nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.drug-group-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+.drug-group-header { padding: 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.drug-group-color { width: 4px; border-radius: 2px; height: 36px; flex-shrink: 0; }
+.drug-group-title { font-size: 16px; font-weight: 500; color: var(--text); }
+.drug-group-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.drug-group-hba1c { margin-left: auto; font-family: var(--mono); font-size: 12px; background: var(--surface2); padding: 3px 10px; border-radius: 6px; color: var(--text2); white-space: nowrap; }
+.drug-group-body { padding: 14px; }
+
+.info-block { margin-bottom: 16px; }
+.info-block-title { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.info-block-body { font-size: 13px; color: var(--text); line-height: 1.65; }
+
+.drugs-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+.drugs-table th { font-family: var(--mono); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; color: var(--text3); padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg); }
+.drugs-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); line-height: 1.5; }
+.drugs-table tr:last-child td { border-bottom: none; }
+.dose-col { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+
+.contra-list, .caution-list { display: flex; flex-direction: column; gap: 4px; }
+.contra-item { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: var(--text); padding: 5px 8px; border-radius: 5px; background: var(--danger-bg); border: 1px solid #F0C0C0; line-height: 1.4; }
+.contra-item::before { content: '✕'; color: var(--danger); font-size: 10px; margin-top: 1px; flex-shrink: 0; }
+.caution-item { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; color: var(--text); padding: 5px 8px; border-radius: 5px; background: var(--warn-bg); border: 1px solid #E8C060; line-height: 1.4; }
+.caution-item::before { content: '!'; color: var(--warn); font-weight: 700; font-size: 11px; flex-shrink: 0; }
+.side-effects, .monitoring-list { font-size: 12px; color: var(--text); line-height: 1.7; }
+
+/* ── Back button in ref ── */
+.back-btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 0; color: var(--accent);
+  font-size: 14px; cursor: pointer; margin-bottom: 12px; border: none; background: none;
+  font-family: var(--sans);
+}
+
+/* ── HbA1c summary strip ── */
+.hba1c-strip { background: var(--surface2); border-radius: 8px; padding: 10px 12px; font-size: 12px; margin-top: 4px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">СД2 — Подбор терапии</div>
+    <div class="header-sub">Калькулятор сахароснижающей терапии</div>
+  </div>
+</div>
+
+<!-- Top nav -->
+<div class="top-nav">
+  <button class="nav-btn active" id="nav-input" onclick="switchPage('input')">
+    <span class="nav-icon">📋</span>
+    <span>Параметры</span>
+  </button>
+  <button class="nav-btn" id="nav-result" onclick="switchPage('result')">
+    <span class="nav-icon">📊</span>
+    <span>Рекомендации</span>
+  </button>
+  <button class="nav-btn" id="nav-ref" onclick="switchPage('ref')">
+    <span class="nav-icon">📚</span>
+    <span>Справочник</span>
+  </button>
+</div>
+
+<div class="scroll-area" id="scroll-area">
+
+  <!-- PAGE: INPUT -->
+  <div class="tab-page active" id="page-input">
+
+    <div class="sec">
+      <div class="sec-title">Данные пациента</div>
+      <div class="two-col">
+        <div class="field">
+          <div class="field-label">Возраст (лет)</div>
+          <input type="number" id="age" min="18" max="100" value="55" oninput="upd()">
+        </div>
+        <div class="field">
+          <div class="field-label">СКФ (мл/мин)</div>
+          <input type="number" id="egfr" min="5" max="120" value="75" oninput="upd()">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Стадия ХБП по СКФ</div>
+        <div class="egfr-wrap">
+          <div class="egfr-bar">
+            <div class="egfr-seg" style="background:#C8E8D8"></div>
+            <div class="egfr-seg" style="background:#A8D8B8"></div>
+            <div class="egfr-seg" style="background:#FDF4E3"></div>
+            <div class="egfr-seg" style="background:#FAE0A0"></div>
+            <div class="egfr-seg" style="background:#F7B080"></div>
+            <div class="egfr-seg" style="background:#F09090"></div>
+          </div>
+          <div class="egfr-ptr" id="egfr-ptr"></div>
+        </div>
+        <div id="egfr-label" style="font-family:var(--mono);font-size:11px;margin-top:3px"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">HbA1c</div>
+      <div class="field">
+        <div class="field-label">Текущий HbA1c</div>
+        <div class="range-row">
+          <span class="range-big" id="cur-disp">8.5</span>
+          <span class="range-unit">%</span>
+        </div>
+        <input type="range" min="5.5" max="15" step="0.1" value="8.5" id="cur-sl" oninput="upd()">
+        <div class="range-hints"><span>5.5</span><span>15.0</span></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Целевой HbA1c — профиль</div>
+        <select id="tgt-profile" onchange="upd()">
+          <option value="6.5">Молодой, без осложнений (&lt;6.5%)</option>
+          <option value="7.0" selected>Средний возраст, без осложнений (&lt;7.0%)</option>
+          <option value="7.5mc">Средний возраст, с осложнениями (&lt;7.5%)</option>
+          <option value="7.5old">Пожилой, без осложнений (&lt;7.5%)</option>
+          <option value="8.0">Пожилой, с осложнениями / риск гипо (&lt;8.0%)</option>
+        </select>
+      </div>
+      <div class="hba1c-strip" id="hba1c-summary"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Текущая терапия</div>
+      <div class="drug-grid" id="drug-grid"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Коморбидные состояния</div>
+      <div class="check-group" id="comorbid-group"></div>
+    </div>
+
+    <button class="go-btn" onclick="switchPage('result')">
+      Перейти к рекомендациям →
+    </button>
+    <div style="height:8px"></div>
+
+  </div>
+
+  <!-- PAGE: RESULT -->
+  <div class="tab-page" id="page-result">
+
+    <div class="metrics" id="metrics"></div>
+    <div id="egfr-alerts"></div>
+
+    <div class="panel">
+      <div class="panel-title">Оценка текущей терапии</div>
+      <div id="coverage-block"></div>
+    </div>
+
+    <div class="panel" id="comor-panel" style="display:none">
+      <div class="panel-title">Рекомендации по коморбидным состояниям</div>
+      <div id="comor-block"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Препараты для добавления / коррекции</div>
+      <div id="add-drugs-block"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Ограничения по СКФ</div>
+      <div class="restrictions-grid" id="restrictions-block"></div>
+    </div>
+
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- PAGE: REFERENCE — drug list -->
+  <div class="tab-page" id="page-ref">
+    <div class="sec-title" style="margin-bottom:12px">Группы препаратов</div>
+    <div class="ref-nav" id="ref-sidebar"></div>
+  </div>
+
+  <!-- PAGE: REFERENCE — drug detail -->
+  <div class="tab-page" id="page-ref-detail">
+    <button class="back-btn" onclick="switchPage('ref')">← Назад к списку</button>
+    <div id="ref-content"></div>
+  </div>
+
+</div>
+
+
+
+<script>
+// ── Telegram WebApp init ──
+if (window.Telegram && window.Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
+const TGT_MAP = {'6.5':6.5,'7.0':7.0,'7.5mc':7.5,'7.5old':7.5,'8.0':8.0};
+
+const COMORBIDITIES = [
+  {id:'hf',    label:'ХСН',               sub:'Хроническая сердечная недостаточность'},
+  {id:'cvd',   label:'ССЗ',               sub:'Атеросклеротические ССЗ'},
+  {id:'ckd',   label:'ХБП',               sub:'Хроническая болезнь почек (3–5 ст.)'},
+  {id:'obes',  label:'Ожирение',          sub:'ИМТ ≥ 30 кг/м²'},
+  {id:'nafld', label:'НАЖБП',             sub:'Неалкогольная жировая болезнь печени'},
+  {id:'htn',   label:'АГ',                sub:'Артериальная гипертензия'},
+  {id:'hypo',  label:'Риск гипогликемий', sub:'Пожилые, водители, нарушения ритма'},
+];
+
+const DRUGS = [
+  {id:'met',     name:'Метформин',         cls:'Бигуаниды',               hba1c:[1.0,1.5], egfr_reduce:45, egfr_stop:30,   egfr_note:'Снизить дозу при СКФ 30–44; противопоказан при СКФ <30', comorbid_pref:['nafld','htn'], comorbid_avoid:[], weight:'neutral', hypo_risk:false, compatible:['idpp4','inglт2','tzd','arglp1','ins_bas','psm'], mechanism:'Снижение продукции глюкозы печенью, повышение чувствительности к инсулину'},
+  {id:'idpp4',   name:'иДПП-4',            cls:'Глиптины',                hba1c:[0.5,0.9], egfr_reduce:50, egfr_stop:null, egfr_note:'Коррекция дозы при СКФ <50. Линаглиптин — без коррекции', comorbid_pref:['hypo'], comorbid_avoid:['hf'], weight:'neutral', hypo_risk:false, compatible:['met','tzd','inglт2','ins_bas'], mechanism:'Ингибирование ДПП-4, глюкозозависимая стимуляция секреции инсулина'},
+  {id:'inglт2',  name:'иНГЛТ-2',           cls:'Глифлозины',              hba1c:[0.7,1.0], egfr_reduce:45, egfr_stop:25,   egfr_note:'Эффект снижается при СКФ <45; противопоказаны при СКФ <25', comorbid_pref:['hf','cvd','ckd','obes','htn'], comorbid_avoid:[], weight:'loss', hypo_risk:false, compatible:['met','idpp4','tzd','arglp1','ins_bas'], mechanism:'Блокада SGLT-2, глюкозурия, натрийурез, снижение АД и веса'},
+  {id:'tzd',     name:'ТЗД (пиоглитазон)', cls:'Тиазолидиндионы',         hba1c:[0.5,1.4], egfr_reduce:null,egfr_stop:null, egfr_note:'Не требует коррекции дозы по СКФ', comorbid_pref:['nafld'], comorbid_avoid:['hf','obes'], weight:'gain', hypo_risk:false, compatible:['met','idpp4','inglт2'], mechanism:'Агонист PPARγ, повышение чувствительности к инсулину в жировой ткани'},
+  {id:'arglp1',  name:'арГПП-1',           cls:'Агонисты рецепторов ГПП-1',hba1c:[1.3,1.9], egfr_reduce:null,egfr_stop:15, egfr_note:'С осторожностью при СКФ <30; семаглутид — при СКФ <15 не рекомендован', comorbid_pref:['cvd','obes','nafld'], comorbid_avoid:[], weight:'loss', hypo_risk:false, compatible:['met','inglт2','ins_bas'], mechanism:'Глюкозозависимая секреция инсулина, подавление аппетита'},
+  {id:'psm',     name:'ПСМ / Глиниды',     cls:'Секретагоги',             hba1c:[1.0,1.5], egfr_reduce:30, egfr_stop:30,   egfr_note:'Глибенкламид — противопоказан при СКФ <30; гликлазид — с осторожностью', comorbid_pref:[], comorbid_avoid:['hypo','hf','ckd'], weight:'gain', hypo_risk:true, compatible:['met','tzd','inglт2'], mechanism:'Стимуляция секреции инсулина β-клетками поджелудочной железы'},
+  {id:'ins_bas', name:'Базальный инсулин',  cls:'Инсулин',                 hba1c:[1.5,2.5], egfr_reduce:30, egfr_stop:null, egfr_note:'При СКФ <30 — риск гипогликемий, снизить дозу, усилить контроль', comorbid_pref:[], comorbid_avoid:['hypo','obes'], weight:'gain', hypo_risk:true, compatible:['met','idpp4','inglт2','arglp1'], mechanism:'Экзогенный инсулин, контроль базальной гликемии'},
+  {id:'ins_sh',  name:'Инсулин к/д',        cls:'Прандиальный инсулин',    hba1c:[1.0,2.0], egfr_reduce:30, egfr_stop:null, egfr_note:'При СКФ <30 — высокий риск гипогликемий; тщательный мониторинг', comorbid_pref:[], comorbid_avoid:['hypo','obes'], weight:'gain', hypo_risk:true, compatible:['met','inglт2','ins_bas'], mechanism:'Прандиальный инсулин, контроль постпрандиальной гликемии'},
+];
+
+const NR_PAIRS = [
+  ['arglp1','idpp4','арГПП-1 + иДПП-4 — схожий механизм, эффект не суммируется'],
+  ['ins_sh','psm','ПСМ + инсулин к/д — высокий риск тяжёлых гипогликемий'],
+  ['ins_bas','tzd','Базальный инсулин + ТЗД — задержка жидкости, риск декомпенсации ХСН'],
+  ['ins_sh','tzd','Инсулин к/д + ТЗД — задержка жидкости, нежелательная комбинация'],
+];
+
+const COMOR_REC = {
+  hf:    {drug:'иНГЛТ-2',               reason:'Снижение госпитализаций и смертности при ХСН (EMPEROR-Reduced, DAPA-HF)'},
+  cvd:   {drug:'иНГЛТ-2 / арГПП-1',    reason:'Кардиопротективный эффект при атеросклеротических ССЗ (EMPA-REG, LEADER)'},
+  ckd:   {drug:'иНГЛТ-2',               reason:'Нефропротекция, снижение риска терминальной ПН (CREDENCE, DAPA-CKD)'},
+  obes:  {drug:'арГПП-1',               reason:'Снижение веса −3–6 кг (семаглутид до −15% в STEP trials)'},
+  nafld: {drug:'арГПП-1 / ТЗД',         reason:'Снижение стеатоза печени, уменьшение воспалительной активности'},
+  htn:   {drug:'иНГЛТ-2',               reason:'Снижение систолического АД на 3–5 мм рт.ст. за счёт натрийуреза'},
+  hypo:  {drug:'иДПП-4 / иНГЛТ-2 / арГПП-1', reason:'Не вызывают гипогликемий при монотерапии. Избегать ПСМ и инсулина без необходимости'},
+};
+
+const REF_GROUPS = [
+  {id:'met',color:'#1A6B4A',name:'Бигуаниды',class_name:'Метформин',hba1c:'↓ 1.0–1.5%',mechanism:'Метформин подавляет глюконеогенез и гликогенолиз в печени, снижая базальную продукцию глюкозы. Дополнительно повышает чувствительность периферических тканей к инсулину, активирует АМФ-киназу (AMPK). Не стимулирует секрецию инсулина — гипогликемия при монотерапии не развивается.',effect_extra:'Нейтральный/лёгкий снижающий эффект на массу тела. Снижение уровня триглицеридов. Кардиопротективный эффект (UKPDS). Снижение уровня ХС ЛПНП на 5–10%.',drugs:[{name:'Метформин',trade:'Глюкофаж, Сиофор, Форметин',dose:'Старт: 500–850 мг 1–2 р/сут во время еды. Целевая: 1500–2000 мг/сут. Максимальная: 3000 мг/сут',form:'Таблетки 500, 850, 1000 мг'},{name:'Метформин SR',trade:'Глюкофаж Лонг, Гликомет SR',dose:'Старт: 500–1000 мг 1 р/сут вечером с едой. Лучше переносится при ЖКТ-побочных эффектах.',form:'Таблетки 500, 750, 1000 мг'}],contraindications:['СКФ <30 мл/мин/1.73м²','Острая и хроническая почечная недостаточность','Острая сердечная/дыхательная недостаточность','Тяжёлая печёночная недостаточность','Злоупотребление алкоголем','Введение йодсодержащих контрастных веществ (отменить за 48 ч)','Беременность (относительное)'],cautions:['СКФ 30–44: снизить дозу до 500–1000 мг/сут, контроль СКФ каждые 3–6 мес.','Перед операциями под общим наркозом — отменить на день операции','При острых состояниях (лихорадка, рвота, диарея) — временно отменить','Возможно снижение всасывания витамина B12 при длительном применении'],side_effects:'Часто (10–20%): тошнота, диарея, метеоризм — особенно в начале. Минимизируется медленным титрованием и приёмом во время еды. Редко: снижение всасывания B12. Очень редко: лактоацидоз.',monitoring:'СКФ: до назначения, затем ежегодно. Витамин B12: раз в 1–2 года. HbA1c: каждые 3 мес до цели, затем каждые 6–12 мес.',special:'Препарат первой линии при СД2 (рекомендации ADA, ESC/EASD 2023). Может применяться со всеми пероральными препаратами и инсулином. При непереносимости ЖКТ — перевести на SR/XR.'},
+  {id:'idpp4',color:'#1A4A8B',name:'Ингибиторы ДПП-4',class_name:'Глиптины',hba1c:'↓ 0.5–0.9%',mechanism:'Ингибируют фермент ДПП-4, разрушающий нативные инкретины (ГПП-1 и ГИП). Повышение концентрации инкретинов → глюкозозависимая секреция инсулина и подавление глюкагона. При нормогликемии секреция инсулина не усиливается — гипогликемия не развивается.',effect_extra:'Нейтральный эффект на массу тела. Нейтральная сердечно-сосудистая безопасность (TECOS, SAVOR-TIMI, EXAMINE). Саксаглиптин — возможный риск госпитализаций при ХСН.',drugs:[{name:'Ситаглиптин',trade:'Янувия',dose:'100 мг 1 р/сут. При СКФ 30–50: 50 мг. При СКФ <30: 25 мг',form:'Таб. 25, 50, 100 мг'},{name:'Вилдаглиптин',trade:'Галвус',dose:'50 мг 2 р/сут. При СКФ <50: 50 мг 1 р/сут',form:'Таб. 50 мг'},{name:'Линаглиптин',trade:'Тражента',dose:'5 мг 1 р/сут. Коррекция дозы по СКФ не требуется — препарат выбора при ХБП.',form:'Таб. 5 мг'},{name:'Алоглиптин',trade:'Випидия',dose:'25 мг 1 р/сут. При СКФ 30–60: 12.5 мг. При СКФ <30: 6.25 мг',form:'Таб. 6.25, 12.5, 25 мг'}],contraindications:['СД1 типа','Диабетический кетоацидоз','Беременность и кормление грудью','Саксаглиптин — при ХСН (относительное)'],cautions:['Редкие случаи острого панкреатита','Буллёзный пемфигоид (крайне редко)','Саксаглиптин — осторожность при ХСН III–IV ФК','Дозу корректировать при СКФ <50 (кроме линаглиптина)'],side_effects:'Хорошо переносятся. Возможны назофарингит, инфекции ВДП (2–4%). Редко: артралгии. Очень редко: острый панкреатит, буллёзный пемфигоид.',monitoring:'СКФ: до назначения и ежегодно. HbA1c каждые 3 мес. При болях в животе — исключить панкреатит.',special:'Выбор при риске гипогликемий (пожилые, водители). Линаглиптин — при любой стадии ХБП. Нельзя комбинировать с арГПП-1.'},
+  {id:'inglт2',color:'#7B2E8B',name:'Ингибиторы НГЛТ-2',class_name:'Глифлозины',hba1c:'↓ 0.7–1.0%',mechanism:'Блокируют SGLT-2 в проксимальных канальцах почек, ответственный за 90% реабсорбции глюкозы. Выведение 60–100 г глюкозы с мочой в сутки. Механизм независим от инсулина. Сопровождается осмотическим диурезом и натрийурезом.',effect_extra:'Снижение массы тела на 2–4 кг. Снижение систолического АД на 3–5 мм рт.ст. Снижение мочевой кислоты. Нефропротекция. Кардиопротекция при ХСН.',drugs:[{name:'Эмпаглифлозин',trade:'Джардинс',dose:'10 мг 1 р/сут утром, можно до 25 мг. При СКФ <45 — эффект снижен. При СКФ <20 — противопоказан.',form:'Таб. 10, 25 мг'},{name:'Дапаглифлозин',trade:'Форсига',dose:'10 мг 1 р/сут утром. При СКФ <25 (сахароснижение) — противопоказан. При ХСН/ХБП — до СКФ 15.',form:'Таб. 10 мг'},{name:'Канаглифлозин',trade:'Инвокана',dose:'100 мг 1 р/сут до завтрака, можно до 300 мг. При СКФ <45 — только для нефропротекции.',form:'Таб. 100, 300 мг'}],contraindications:['СКФ <25 (эмпа-, дапаглифлозин) для сахароснижения','Рецидивирующие инфекции МВП','СД1 типа (риск ДКА)','Беременность и лактация'],cautions:['Риск нормогликемического ДКА при голодании, операции — отменить за 3–4 дня','Кандидоз гениталий и МВП — чаще у женщин','Умеренное снижение АД — осторожность у пожилых','Риск ампутаций конечностей (канаглифлозин)'],side_effects:'Часто: вагинальный кандидоз и баланит (3–5%), инфекции МВП. Редко: нормогликемический ДКА. Очень редко: синдром Фурнье.',monitoring:'СКФ и электролиты: до начала и ежегодно. Признаки инфекций МВП и гениталий. Симптомы ДКА даже при нормальной гликемии.',special:'Единственный класс с доказанной пользой при ХСН со сниженной и сохранённой ФВ. Нефропротекция независимо от HbA1c. Дапаглифлозин одобрен при ХСН и ХБП даже без СД.'},
+  {id:'arglp1',color:'#8B5200',name:'Агонисты рецепторов ГПП-1',class_name:'арГПП-1',hba1c:'↓ 1.3–1.9%',mechanism:'Активируют рецепторы ГПП-1 → глюкозозависимая секреция инсулина, подавление глюкагона, замедление опорожнения желудка, снижение аппетита через центральные механизмы. При нормогликемии секреция инсулина минимальна.',effect_extra:'Значительное снижение веса: −3–6 кг (лираглутид, дулаглутид), семаглутид до −15% (STEP). Снижение артериального давления. Кардиопротекция (LEADER, SUSTAIN-6, REWIND).',drugs:[{name:'Семаглутид',trade:'Оземпик (п/к), Риберсус (пероральный)',dose:'П/к: старт 0.25 мг 1 р/нед → 0.5 мг → 1 мг. Пероральный: 3 мг утром натощак → 7 мг → 14 мг.',form:'Шприц-ручка 0.25, 0.5, 1 мг; Таб. 3, 7, 14 мг'},{name:'Дулаглутид',trade:'Трулисити',dose:'0.75 мг п/к 1 р/нед, можно до 1.5 мг. Удобная авторучка.',form:'Шприц-ручка 0.75, 1.5 мг'},{name:'Лираглутид',trade:'Виктоза',dose:'Старт 0.6 мг п/к 1 р/сут → 1.2 мг → 1.8 мг. Лечение ожирения: до 3 мг (Саксенда).',form:'Шприц-ручка 6 мг/мл'}],contraindications:['Медуллярный рак щитовидной железы в анамнезе или семейный','МЭН-2','Тяжёлая почечная недостаточность (СКФ <15)','Беременность и лактация'],cautions:['ЖКТ-побочные эффекты — начинать с низкой дозы, медленно титровать','Острый панкреатит — при болях в животе немедленно прекратить','Нарушение опорожнения желудка — с осторожностью при гастропарезе','Ретинопатия — семаглутид может ускорить прогрессирование на фоне резкого снижения гликемии'],side_effects:'Часто: тошнота, рвота, диарея (20–40%), особенно в начале — снижается со временем. Редко: острый панкреатит. Инъекционные реакции. Не вызывают гипогликемий при монотерапии.',monitoring:'HbA1c каждые 3 мес. Масса тела. Функция почек. При болях в животе — амилаза, липаза.',special:'Наибольшее снижение HbA1c и веса среди пероральных/п/к препаратов (не инсулин). Семаглутид — наиболее эффективен. Нельзя комбинировать с иДПП-4.'},
+  {id:'tzd',color:'#5C5850',name:'Тиазолидиндионы',class_name:'ТЗД (пиоглитазон)',hba1c:'↓ 0.5–1.4%',mechanism:'Агонист PPARγ → повышение чувствительности жировой ткани, мышц и печени к инсулину. Снижение уровня свободных жирных кислот. Эффект развивается постепенно (4–12 недель).',effect_extra:'Снижение триглицеридов, повышение ЛПВП. Снижение стеатоза при НАЖБП. Возможна задержка жидкости. Прибавка массы тела. Пиоглитазон — нейтрален/благоприятен для ССС (PROactive).',drugs:[{name:'Пиоглитазон',trade:'Актос, Диаб-норм',dose:'15–30 мг 1 р/сут, максимально 45 мг/сут. Независимо от приёма пищи. Эффект через 4–12 недель.',form:'Таб. 15, 30, 45 мг'}],contraindications:['Сердечная недостаточность (любой ФК)','Активные заболевания печени (АЛТ >2.5N)','Рак мочевого пузыря в анамнезе','Беременность и лактация','Отёки любой этиологии'],cautions:['Задержка жидкости — усугубляет ХСН','Переломы конечностей — у женщин в постменопаузе','Рак мочевого пузыря — возможна связь при длительном применении >1 года','Прибавка веса 2–3 кг'],side_effects:'Часто: отёки (до 10%), прибавка веса, лёгкие инфекции ВДП. Редко: анемия (разведения). Очень редко: острая печёночная недостаточность.',monitoring:'АЛТ: до назначения и при симптомах нарушения печени. Масса тела и отёки. Симптомы ХСН. HbA1c каждые 3 мес.',special:'Нежелателен при ожирении и ХСН. Полезен при НАЖБП. Не требует коррекции дозы при ХБП. Длинный период полувыведения — при отмене эффект сохраняется.'},
+  {id:'psm',color:'#8B2020',name:'Производные сульфонилмочевины',class_name:'ПСМ / Глиниды',hba1c:'↓ 1.0–1.5%',mechanism:'Связываются с SUR1-рецепторами β-клеток → закрытие АТФ-зависимых K⁺-каналов → деполяризация → открытие Са²⁺-каналов → секреция инсулина. Эффект не зависит от уровня гликемии — риск гипогликемии.',effect_extra:'Прибавка массы тела 1–2 кг. Риск гипогликемий — главный недостаток. Гликлазид МВ — наименее гипогликемичный ПСМ. Глибенкламид — устаревший, наибольший риск гипо.',drugs:[{name:'Гликлазид МВ',trade:'Диабетон МВ',dose:'30–120 мг 1 р/сут во время завтрака. Наиболее безопасный ПСМ — меньший риск гипогликемий.',form:'Таб. 30, 60 мг МВ'},{name:'Глимепирид',trade:'Амарил, Глемаз',dose:'1–4 мг 1 р/сут до/во время завтрака. Максимально: 8 мг/сут.',form:'Таб. 1, 2, 3, 4 мг'},{name:'Репаглинид',trade:'НовоНорм',dose:'0.5–2 мг перед каждым приёмом пищи. Пропустить приём, если нет еды.',form:'Таб. 0.5, 1, 2 мг'}],contraindications:['СКФ <30 (глибенкламид полностью противопоказан; гликлазид — с осторожностью)','Тяжёлая печёночная недостаточность','СД1 типа','Диабетический кетоацидоз','Беременность'],cautions:['Пожилые — значительный риск тяжёлых гипогликемий','Нерегулярное питание → гипогликемия','Алкоголь — потенцирует гипогликемический эффект','Интеракция с флуконазолом, варфарином, НПВС'],side_effects:'Часто: гипогликемия (главный риск), прибавка веса. Редко: кожные реакции, тошнота. Очень редко: гепатотоксичность.',monitoring:'Самоконтроль гликемии — обязателен. HbA1c каждые 3 мес. Масса тела. СКФ ежегодно.',special:'Не рекомендованы как первая линия (уступают метформину по безопасности). Гликлазид МВ — наиболее безопасный. Глибенкламид — устаревший, избегать у пожилых и при ХБП.'},
+  {id:'insulin',color:'#1A1916',name:'Инсулины',class_name:'Базальные и прандиальные',hba1c:'↓ 1.5–3.5%',mechanism:'Экзогенный инсулин связывается с инсулиновыми рецепторами → активация тирозинкиназного пути → транслокация GLUT-4 → поглощение глюкозы мышцами и жировой тканью. Подавляет гликогенолиз и глюконеогенез в печени. Базальный инсулин подавляет избыточную продукцию глюкозы натощак.',effect_extra:'Наиболее мощный сахароснижающий эффект. Прибавка массы тела (2–4 кг). Риск гипогликемий. Аналоги (гларгин, деглудек) — более предсказуемый профиль и меньший риск ночных гипо.',drugs:[{name:'Гларгин 100 ед/мл',trade:'Лантус, Тожео 300 ед/мл',dose:'Старт: 10 ед/сут или 0.1–0.2 ед/кг п/к 1 р/сут. Титрование: +2 ед каждые 3 дня до глюкозы натощак 4–7 ммоль/л.',form:'Шприц-ручка, флакон 100 ед/мл'},{name:'Деглудек',trade:'Тресиба',dose:'Старт: 10 ед/сут п/к. Ультрадлительный (>42 ч), можно менять время введения. Наименьший риск гипогликемий.',form:'Шприц-ручка 100, 200 ед/мл'},{name:'Аспарт (у/к)',trade:'НовоРапид',dose:'4–6 ед перед едой п/к, корректировать по постпрандиальной гликемии.',form:'Шприц-ручка, флакон'}],contraindications:['Гипогликемия (коррекция дозы, не отмена)','Аллергия на инсулин (крайне редко)'],cautions:['СКФ <30 — значительно повышен риск гипо, снизить дозу','Пожилые — менее интенсивные цели, упрощённые схемы','Физическая активность снижает потребность в инсулине','Хранение: до вскрытия — +2...+8°С; после — комнатная температура до 30 дней'],side_effects:'Гипогликемия: лёгкая — 15–20 г быстрых углеводов; тяжёлая — требует помощи. Прибавка веса. Липодистрофии в местах инъекций (ротация обязательна).',monitoring:'Самоконтроль гликемии натощак и постпрандиально. Глюкоза натощак — цель 4–7 ммоль/л. HbA1c каждые 3 мес. Осмотр мест инъекций.',special:'Старт с базального инсулина при HbA1c >10% или симптоматической гипергликемии. Предпочтительны аналоги (гларгин, деглудек). При инсулине — сохранить метформин и иНГЛТ-2. Обязательный самоконтроль и обучение пациента.'},
+];
+
+let selected = new Set();
+let comorbid = new Set();
+let currentPage = 'input';
+
+// ── Page switch ──
+function switchPage(p) {
+  currentPage = p;
+  document.querySelectorAll('.tab-page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const navMap = {'input':'nav-input','result':'nav-result','ref':'nav-ref','ref-detail':'nav-ref'};
+  const nb = document.getElementById(navMap[p]);
+  if (nb) nb.classList.add('active');
+  document.getElementById('scroll-area').scrollTop = 0;
+  if (p === 'result') { upd(); }
+  if (p === 'ref') renderRefList();
+}
+
+// ── Helpers ──
+function getEgfr() { return parseFloat(document.getElementById('egfr').value) || 75; }
+function getAge()  { return parseInt(document.getElementById('age').value) || 55; }
+function getCur()  { return parseFloat(document.getElementById('cur-sl').value); }
+function getTgt()  { return TGT_MAP[document.getElementById('tgt-profile').value]; }
+
+function egfrStage(e) {
+  if (e >= 90) return {label:'G1 ≥90 — нормальная или высокая', color:'#1A6B4A'};
+  if (e >= 60) return {label:'G2 60–89 — незначительно снижена', color:'#2E8B57'};
+  if (e >= 45) return {label:'G3a 45–59 — умеренно снижена',    color:'#B8860B'};
+  if (e >= 30) return {label:'G3b 30–44 — значительно снижена', color:'#C06000'};
+  if (e >= 15) return {label:'G4 15–29 — резко снижена',        color:'#C04000'};
+  return             {label:'G5 <15 — терминальная / диализ',   color:'#8B2020'};
+}
+function isContradicted(d) { const e=getEgfr(); return d.egfr_stop!==null && e<d.egfr_stop; }
+function isDoseReduce(d)   { const e=getEgfr(); return d.egfr_reduce!==null && e<d.egfr_reduce && !isContradicted(d); }
+function isNRWith(id, set) {
+  for (const [a,b] of NR_PAIRS) { if ((id===a&&set.has(b))||(id===b&&set.has(a))) return true; }
+  return false;
+}
+
+// ── Render comorbid ──
+function renderComorbid() {
+  const g = document.getElementById('comorbid-group');
+  g.innerHTML = '';
+  COMORBIDITIES.forEach(c => {
+    const lbl = document.createElement('label');
+    lbl.className = 'check-item' + (comorbid.has(c.id) ? ' active' : '');
+    lbl.innerHTML = `<input type="checkbox" ${comorbid.has(c.id)?'checked':''}><div class="check-label"><div>${c.label}</div><div class="check-sub">${c.sub}</div></div>`;
+    lbl.querySelector('input').onchange = e => {
+      if (e.target.checked) comorbid.add(c.id); else comorbid.delete(c.id);
+      lbl.className = 'check-item' + (comorbid.has(c.id) ? ' active' : '');
+    };
+    g.appendChild(lbl);
+  });
+}
+
+// ── Render drug grid ──
+function renderDrugGrid() {
+  const g = document.getElementById('drug-grid');
+  g.innerHTML = '';
+  DRUGS.forEach(d => {
+    const contra = isContradicted(d);
+    const reduce = isDoseReduce(d);
+    const active = selected.has(d.id);
+    const nr     = !active && isNRWith(d.id, selected);
+    let cls = 'drug-check-item';
+    if (active)  cls += ' active';
+    if (contra)  cls += ' contra disabled';
+    if (reduce && !active && !contra) cls += ' dose-reduce';
+    if (nr && !contra) cls += ' nr-warn';
+    let tag = `↓${d.hba1c[0].toFixed(1)}–${d.hba1c[1].toFixed(1)}%`;
+    if (contra) tag = 'ПРОТИВОПОКАЗАН';
+    else if (nr) tag = 'НЕРАЦ.';
+    else if (reduce) tag = 'СНИЗИТЬ ДОЗУ';
+    const div = document.createElement('div');
+    div.className = cls;
+    div.innerHTML = `<input type="checkbox" ${active?'checked':''} ${contra?'disabled':''}><div class="d-info"><div class="d-name">${d.name}</div><div class="d-class">${d.cls}</div></div><span class="d-tag">${tag}</span>`;
+    if (!contra) {
+      const toggle = () => {
+        if (selected.has(d.id)) selected.delete(d.id); else selected.add(d.id);
+        renderDrugGrid();
+      };
+      div.querySelector('input').onchange = toggle;
+      div.onclick = e => { if (e.target.tagName !== 'INPUT') toggle(); };
+    }
+    g.appendChild(div);
+  });
+}
+
+// ── Main update ──
+function upd() {
+  const cur  = getCur();
+  const tgt  = getTgt();
+  const egfr = getEgfr();
+  const need = Math.max(0, cur - tgt);
+
+  document.getElementById('cur-disp').textContent = cur.toFixed(1);
+  const maxE = 120;
+  const pctE = Math.min(100, Math.max(0, egfr / maxE * 100));
+  const ptr = document.getElementById('egfr-ptr');
+  if (ptr) ptr.style.left = 'calc('+pctE+'% - 1px)';
+  const st = egfrStage(egfr);
+  const lbl = document.getElementById('egfr-label');
+  if (lbl) { lbl.textContent = st.label; lbl.style.color = st.color; }
+
+  const mNeedCol = need > 3 ? 'color:var(--danger)' : need > 1.5 ? 'color:var(--warn)' : 'color:var(--accent)';
+  const sumEl = document.getElementById('hba1c-summary');
+  if (sumEl) sumEl.innerHTML = `<span style="color:var(--text2)">Текущий:</span> <strong>${cur.toFixed(1)}%</strong> &nbsp;·&nbsp; <span style="color:var(--text2)">Цель:</span> <strong>&lt;${tgt.toFixed(1)}%</strong> &nbsp;·&nbsp; <span style="color:var(--text2)">Снизить:</span> <strong style="${mNeedCol}">${need.toFixed(1)}%</strong>`;
+
+  DRUGS.forEach(d => { if (isContradicted(d) && selected.has(d.id)) selected.delete(d.id); });
+  renderDrugGrid();
+
+  let minRed = 0, maxRed = 0;
+  selected.forEach(id => {
+    const d = DRUGS.find(x=>x.id===id);
+    if (d) { const f=(d.egfr_reduce&&egfr<d.egfr_reduce)?0.6:1; minRed+=d.hba1c[0]*f; maxRed+=d.hba1c[1]*f; }
+  });
+  const midRed = (minRed+maxRed)/2;
+  const projLow = Math.max(3.5, cur-maxRed);
+  const projHigh = Math.max(3.5, cur-minRed);
+  const projMid = (projLow+projHigh)/2;
+  const pct = need > 0 ? Math.min(100, Math.round(midRed/need*100)) : (selected.size?100:0);
+
+  if (currentPage !== 'result') return;
+
+  const mProjCls = projMid<=tgt?'good':projMid<=tgt+0.7?'warn':'danger';
+  const mNeedCls = need>3?'danger':need>1.5?'warn':'good';
+  const projStr  = selected.size ? projLow.toFixed(1)+'–'+projHigh.toFixed(1)+'%' : cur.toFixed(1)+'%';
+  const projSub  = projMid<=tgt?'Цель достижима':projMid<=tgt+0.5?'Возможно':'Нужна интенсификация';
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Текущий HbA1c</div><div class="metric-val">${cur.toFixed(1)}%</div><div class="metric-sub">Цель: &lt;${tgt.toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="metric-label">Нужно снизить</div><div class="metric-val ${mNeedCls}">${need.toFixed(1)}%</div><div class="metric-sub">Расч.: ${minRed.toFixed(1)}–${maxRed.toFixed(1)}%</div></div>
+    <div class="metric-card"><div class="metric-label">Покрытие цели</div><div class="metric-val ${pct>=90?'good':pct>=60?'warn':'danger'}">${pct}%</div><div class="metric-sub">текущей терапией</div></div>
+    <div class="metric-card"><div class="metric-label">Прогноз HbA1c</div><div class="metric-val ${mProjCls}">${projStr}</div><div class="metric-sub">${projSub}</div></div>
+  `;
+
+  let ea = '';
+  if (egfr<30) ea+=`<div class="alert-box alert-danger">СКФ &lt;30: противопоказаны метформин и большинство ПСМ. Приоритет — иДПП-4 (линаглиптин без коррекции дозы). Дозу инсулина снизить.</div>`;
+  else if (egfr<45) ea+=`<div class="alert-box alert-warn">СКФ 30–44 (G3b): снизить дозу метформина до 500–1000 мг/сут. Предпочтителен линаглиптин среди иДПП-4.</div>`;
+  else if (egfr<60) ea+=`<div class="alert-box alert-warn">СКФ 45–59 (G3a): возможна коррекция доз. Предпочтительны иНГЛТ-2 и арГПП-1 (нефропротекция).</div>`;
+  document.getElementById('egfr-alerts').innerHTML = ea;
+
+  const pfCls = pct>=90?'':pct>=60?' warn':' danger';
+  let cvg = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text2)">Покрытие необходимого снижения HbA1c</span><span class="badge ${pct>=90?'badge-ok':pct>=60?'badge-warn':'badge-danger'}">${pct}%</span></div>
+  <div class="progress-track"><div class="progress-fill${pfCls}" style="width:${pct}%"></div></div>
+  <div class="prog-row"><span>0%</span><span>↓ ${minRed.toFixed(1)}–${maxRed.toFixed(1)}% / нужно: ${need.toFixed(1)}%</span><span>100%</span></div>`;
+
+  const activeIds = [...selected];
+  activeIds.forEach(id => activeIds.forEach(id2 => {
+    if (id>=id2) return;
+    const pair = NR_PAIRS.find(([a,b])=>(id===a&&id2===b)||(id===b&&id2===a));
+    if (pair) { const dA=DRUGS.find(d=>d.id===id), dB=DRUGS.find(d=>d.id===id2);
+      cvg+=`<div class="alert-box alert-danger" style="margin-top:8px"><strong>Нерациональная комбинация:</strong> ${dA.name} + ${dB.name} — ${pair[2]}</div>`; }
+  }));
+  if (cur>10) cvg+=`<div class="alert-box alert-warn" style="margin-top:8px">HbA1c &gt;10%: рассмотрите добавление базального инсулина для быстрого снижения.</div>`;
+  if (selected.size===0) cvg+=`<div class="alert-box alert-info" style="margin-top:8px">Терапия не назначена. Рекомендован старт с Метформина при СКФ ≥30.</div>`;
+  if (projMid<=tgt&&selected.size>0) cvg+=`<div class="alert-box alert-ok" style="margin-top:8px">Текущая схема потенциально достигает цели HbA1c &lt;${tgt.toFixed(1)}%. Контроль через 3 мес.</div>`;
+  document.getElementById('coverage-block').innerHTML = cvg;
+
+  const cpanel = document.getElementById('comor-panel');
+  if (comorbid.size>0) {
+    cpanel.style.display='';
+    let ch='<div class="rec-list">';
+    comorbid.forEach(c => { const r=COMOR_REC[c]; if(r) ch+=`<div class="rec-item priority"><div class="rec-drug">${r.drug} <span class="rec-badge comor">${COMORBIDITIES.find(x=>x.id===c).label}</span></div><div class="rec-reason">${r.reason}</div></div>`; });
+    ch+='</div>';
+    document.getElementById('comor-block').innerHTML=ch;
+  } else cpanel.style.display='none';
+
+  let priorityDrugs=[], altDrugs=[];
+  DRUGS.forEach(d => {
+    if (selected.has(d.id)||isContradicted(d)) return;
+    const nrConflict=activeIds.some(id=>NR_PAIRS.some(([a,b])=>(d.id===a&&id===b)||(d.id===b&&id===a)));
+    if (nrConflict) return;
+    let score=0, reasons=[];
+    d.comorbid_pref.forEach(c=>{ if(comorbid.has(c)){score+=3;reasons.push(getComorText(c));} });
+    d.comorbid_avoid.forEach(c=>{ if(comorbid.has(c)) score-=5; });
+    if (comorbid.has('obes')&&d.weight==='loss') { score+=2; if(!reasons.includes('снижение веса')) reasons.push('снижение веса'); }
+    if (comorbid.has('obes')&&d.weight==='gain') score-=2;
+    if (comorbid.has('hypo')&&d.hypo_risk) score-=4;
+    if (isDoseReduce(d)) { score-=1; reasons.push('снижение дозы при данной СКФ'); }
+    if (need>2&&(d.hba1c[0]+d.hba1c[1])/2>1.2) { score+=1; if(!reasons.includes('высокое снижение HbA1c')) reasons.push('высокое снижение HbA1c'); }
+    if (d.id==='met'&&!selected.has('met')) { score+=2; reasons.push('препарат первой линии'); }
+    const avoided=d.comorbid_avoid.some(c=>comorbid.has(c));
+    if (avoided) return;
+    if (reasons.length===0&&score<=0) return;
+    (score>=2?priorityDrugs:altDrugs).push({drug:d,score,reasons});
+  });
+  priorityDrugs.sort((a,b)=>b.score-a.score);
+  altDrugs.sort((a,b)=>b.score-a.score);
+
+  let addHtml='';
+  if (projMid<=tgt&&selected.size>0&&priorityDrugs.length===0) {
+    addHtml='<div class="alert-box alert-ok">Дополнительная терапия не требуется — расчётное снижение достигает цели.</div>';
+  } else if (priorityDrugs.length+altDrugs.length===0) {
+    addHtml='<div style="font-size:13px;color:var(--text3)">Нет препаратов для добавления при текущих параметрах.</div>';
+  } else {
+    if (priorityDrugs.length) {
+      addHtml+='<div class="rec-block"><div class="rec-block-title">Приоритетные препараты</div><div class="rec-list">';
+      priorityDrugs.slice(0,5).forEach(({drug,reasons}) => {
+        addHtml+=`<div class="rec-item priority"><div class="rec-drug">${drug.name} <span class="rec-badge prio">Приоритет</span></div><div class="rec-reason">${reasons.join(' · ')} &nbsp;·&nbsp; ↓HbA1c ${drug.hba1c[0].toFixed(1)}–${drug.hba1c[1].toFixed(1)}%</div></div>`;
+      });
+      addHtml+='</div></div>';
+    }
+    if (altDrugs.length) {
+      addHtml+='<div class="rec-block"><div class="rec-block-title">Альтернативные варианты</div><div class="rec-list">';
+      altDrugs.slice(0,4).forEach(({drug}) => {
+        addHtml+=`<div class="rec-item alt"><div class="rec-drug">${drug.name} <span class="rec-badge alt">Альтернатива</span></div><div class="rec-reason">${drug.mechanism.slice(0,80)} &nbsp;·&nbsp; ↓HbA1c ${drug.hba1c[0].toFixed(1)}–${drug.hba1c[1].toFixed(1)}%</div></div>`;
+      });
+      addHtml+='</div></div>';
+    }
+  }
+  addHtml+='<div class="note-text">Расчётное снижение HbA1c основано на средних данных РКИ. Индивидуальный ответ варьирует. Решение принимает врач.</div>';
+  document.getElementById('add-drugs-block').innerHTML=addHtml;
+
+  let rHtml=''; let anyShown=false;
+  DRUGS.forEach(d => {
+    const contra=isContradicted(d), reduce=isDoseReduce(d), active=selected.has(d.id);
+    if (!contra&&!reduce&&!active) return;
+    anyShown=true;
+    const rowCls=contra?'r-danger':reduce?'r-warn':'r-ok';
+    const badgeCls=contra?'badge-danger':reduce?'badge-warn':'badge-ok';
+    const status=contra?'ПРОТИВОПОКАЗАН':reduce?'Снизить дозу':'Назначен';
+    rHtml+=`<div class="restriction-row ${rowCls}"><div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:2px">${d.name}</div><div style="font-size:11px;color:var(--text2)">${d.egfr_note}</div></div><span class="badge ${badgeCls}">${status}</span></div>`;
+  });
+  if (!anyShown) rHtml='<div style="font-size:13px;color:var(--text3)">Назначьте препараты для отображения ограничений.</div>';
+  document.getElementById('restrictions-block').innerHTML=rHtml;
+}
+
+function getComorText(c) {
+  return ({hf:'снижение риска госпитализаций при ХСН',cvd:'кардиопротекция при ССЗ',ckd:'нефропротекция при ХБП',obes:'снижение веса',nafld:'улучшение показателей НАЖБП',htn:'снижение АД',hypo:'низкий риск гипогликемий'})[c]||c;
+}
+
+// ── Reference ──
+function renderRefList() {
+  const sb = document.getElementById('ref-sidebar');
+  sb.innerHTML = '';
+  REF_GROUPS.forEach(g => {
+    const d = document.createElement('div');
+    d.className = 'ref-nav-item';
+    d.innerHTML = `<div class="ref-nav-dot" style="background:${g.color}"></div><span style="flex:1">${g.name}</span><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${g.hba1c}</span>`;
+    d.onclick = () => showRefDetail(g.id);
+    sb.appendChild(d);
+  });
+}
+
+function showRefDetail(id) {
+  const g = REF_GROUPS.find(x=>x.id===id);
+  if (!g) return;
+  const drugsRows = g.drugs.map(d=>`<tr><td><strong>${d.name}</strong><br><span style="font-size:11px;color:var(--text3)">${d.trade}</span></td><td class="dose-col">${d.dose}</td></tr>`).join('');
+  const contraHtml = g.contraindications.map(c=>`<div class="contra-item">${c}</div>`).join('');
+  const cautionHtml = g.cautions.map(c=>`<div class="caution-item">${c}</div>`).join('');
+
+  document.getElementById('ref-content').innerHTML = `
+    <div class="drug-group-card">
+      <div class="drug-group-header">
+        <div class="drug-group-color" style="background:${g.color}"></div>
+        <div style="flex:1">
+          <div class="drug-group-title">${g.name}</div>
+          <div class="drug-group-sub">${g.class_name}</div>
+        </div>
+        <div class="drug-group-hba1c">${g.hba1c}</div>
+      </div>
+      <div class="drug-group-body">
+        <div class="info-block"><div class="info-block-title">Механизм действия</div><div class="info-block-body">${g.mechanism}</div></div>
+        <div class="info-block"><div class="info-block-title">Дополнительные эффекты</div><div class="info-block-body">${g.effect_extra}</div></div>
+        <div class="info-block"><div class="info-block-title">Препараты и дозы</div>
+          <table class="drugs-table"><thead><tr><th>Препарат / Торговое название</th><th>Режим дозирования</th></tr></thead><tbody>${drugsRows}</tbody></table>
+        </div>
+        <div class="info-block"><div class="info-block-title">Противопоказания</div><div class="contra-list">${contraHtml}</div></div>
+        <div class="info-block"><div class="info-block-title">Предостережения</div><div class="caution-list">${cautionHtml}</div></div>
+        <div class="info-block"><div class="info-block-title">Нежелательные эффекты</div><div class="side-effects">${g.side_effects}</div></div>
+        <div class="info-block"><div class="info-block-title">Мониторинг</div><div class="monitoring-list">${g.monitoring}</div></div>
+        <div class="info-block"><div class="info-block-title">Особенности применения</div><div class="info-block-body">${g.special}</div></div>
+      </div>
+    </div>
+  `;
+  switchPage('ref-detail');
+}
+
+// ── Init ──
+renderComorbid();
+renderDrugGrid();
+upd();
+</script>
+</body>
+</html>
